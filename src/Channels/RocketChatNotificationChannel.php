@@ -41,13 +41,18 @@ class RocketChatNotificationChannel
         /** @var RocketChatMessage $message */
         $message = $notification->toRocketChat($notifiable);
 
+        $domain = $message->getDomain() ?: $this->rocketChat->getDomain();
+        if (!$domain) {
+            throw CouldNotSendNotification::missingDomain();
+        }
+
         $to = $message->getChannel() ?: $notifiable->routeNotificationFor('RocketChat');
         if ($to === null) {
             throw CouldNotSendNotification::missingTo();
         }
 
         $from = $message->getFrom() ?: $this->rocketChat->getToken();
-        if (! $from) {
+        if (!$from) {
             throw CouldNotSendNotification::missingFrom();
         }
 
