@@ -45,6 +45,7 @@ class RocketChat
      * @param string $to
      * @param RocketChatMessage $message
      * @return void
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public static function send(string $domain,
                                 string $token,
@@ -75,6 +76,7 @@ class RocketChat
      * @param string $to
      * @param RocketChatMessage $message
      * @return void
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public static function sendVia(string $connection, string $to, RocketChatMessage $message): void
     {
@@ -131,6 +133,7 @@ class RocketChat
      * @param string $to
      * @param array $message
      * @return void
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public function sendMessage(string $to, array $message): void
     {
@@ -154,6 +157,7 @@ class RocketChat
      * @param string $url
      * @param array $options
      * @return void
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     private function post(string $url, array $options): void
     {

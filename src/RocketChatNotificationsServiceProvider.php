@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace TeamNiftyGmbh\RocketChatNotifications;
 
 use GuzzleHttp\Client as HttpClient;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\ServiceProvider;
 use TeamNiftyGmbh\RocketChatNotifications\Channels\RocketChatNotificationChannel;
 

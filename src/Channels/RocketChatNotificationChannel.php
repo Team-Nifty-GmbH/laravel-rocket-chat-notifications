@@ -34,7 +34,7 @@ class RocketChatNotificationChannel
      * @param Notification $notification
      * @return void
      *
-     * @throws CouldNotSendNotification
+     * @throws CouldNotSendNotification|\GuzzleHttp\Exception\GuzzleException
      */
     public function send(mixed $notifiable, Notification $notification): void
     {
@@ -69,6 +69,7 @@ class RocketChatNotificationChannel
      * @param string $to
      * @param RocketChatMessage $message
      * @return void
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     private function sendMessage(string $to, RocketChatMessage $message): void
     {
