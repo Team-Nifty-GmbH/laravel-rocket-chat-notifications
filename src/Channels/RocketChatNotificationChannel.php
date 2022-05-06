@@ -34,20 +34,35 @@ class RocketChatNotificationChannel
      * @param Notification $notification
      * @return void
      *
-     * @throws CouldNotSendNotification
+     * @throws CouldNotSendNotification|\GuzzleHttp\Exception\GuzzleException
      */
     public function send(mixed $notifiable, Notification $notification): void
     {
         /** @var RocketChatMessage $message */
         $message = $notification->toRocketChat($notifiable);
 
+        if ($message->getDomain()) {
+            $this->rocketChat->setDomain($message->getDomain());
+        }
+
+        if (!$this->rocketChat->getDomain()) {
+            throw CouldNotSendNotification::missingDomain();
+        }
+
         $to = $message->getChannel() ?: $notifiable->routeNotificationFor('RocketChat');
         if ($to === null) {
             throw CouldNotSendNotification::missingTo();
         }
 
-        $from = $message->getFrom() ?: $this->rocketChat->getToken();
-        if (! $from) {
+        if ($message->getFrom()) {
+            $this->rocketChat->setToken($message->getFrom());
+        }
+
+        if ($message->getUserId()) {
+            $this->rocketChat->setUserId($message->getUserId());
+        }
+
+        if (!$this->rocketChat->getToken() || !$this->rocketChat->getUserId()) {
             throw CouldNotSendNotification::missingFrom();
         }
 
@@ -64,6 +79,7 @@ class RocketChatNotificationChannel
      * @param string $to
      * @param RocketChatMessage $message
      * @return void
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     private function sendMessage(string $to, RocketChatMessage $message): void
     {

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace TeamNiftyGmbh\RocketChatNotifications;
 
 use GuzzleHttp\Client as HttpClient;
+use TeamNiftyGmbh\RocketChatNotifications\Exceptions\CouldNotSendNotification;
+use TeamNiftyGmbh\RocketChatNotifications\Messages\RocketChatMessage;
 
 class RocketChat
 {
@@ -35,7 +37,79 @@ class RocketChat
     }
 
     /**
-     * Returns RocketChat token.
+     * Send a RocketChat message
+     *
+     * @param string $domain
+     * @param string $token
+     * @param string $userId
+     * @param string $to
+     * @param RocketChatMessage $message
+     * @return void
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    public static function send(string $domain,
+                                string $token,
+                                string $userId,
+                                string $to,
+                                RocketChatMessage $message): void
+    {
+        $url = rtrim($domain, '/') . '/api/v1/chat.postMessage';
+        $options = [
+            'headers' => [
+                'X-Auth-Token' => $token,
+                'X-User-Id' => $userId,
+                'Rocket-Channel-Id' => $to,
+                'Content-Type' => 'application/json'
+            ],
+            'json' => array_merge($message->toArray(), [
+                'channel' => $to,
+            ]),
+        ];
+
+        $client = new HttpClient();
+        $client->post($url, $options);
+    }
+
+    /**
+     * Send a RocketChat message via defined connection from rocket-chat config
+     *
+     * @param string $connection
+     * @param string $to
+     * @param RocketChatMessage $message
+     * @return void
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    public static function sendVia(string $connection, string $to, RocketChatMessage $message): void
+    {
+        $rocketChatConnection = config('rocket-chat.connections.' . $connection);
+
+        if (!$rocketChatConnection) {
+            throw CouldNotSendNotification::missingConnection($connection);
+        }
+
+        if (!($domain = $rocketChatConnection['url'])) {
+            throw CouldNotSendNotification::missingDomain();
+        }
+
+        if (!($token = $rocketChatConnection['token']) || !($userId = $rocketChatConnection['user_id'])) {
+            throw CouldNotSendNotification::missingFrom();
+        }
+
+        self::send($domain, $token, $userId, $to, $message);
+    }
+
+    /**
+     * Returns RocketChat domain.
+     *
+     * @return string
+     */
+    public function getDomain(): string
+    {
+        return $this->url;
+    }
+
+    /**
+     * Returns RocketChat access token.
      *
      * @return string
      */
@@ -55,11 +129,45 @@ class RocketChat
     }
 
     /**
+     * Sets RocketChat domain
+     *
+     * @param string $domain
+     * @return void
+     */
+    public function setDomain(string $domain): void
+    {
+        $this->url = $domain;
+    }
+
+    /**
+     * Sets RocketChat access token
+     *
+     * @param string $token
+     * @return void
+     */
+    public function setToken(string $token): void
+    {
+        $this->token = $token;
+    }
+
+    /**
+     * Sets user id
+     *
+     * @param string $userId
+     * @return void
+     */
+    public function setUserId(string $userId): void
+    {
+        $this->userId = $userId;
+    }
+
+    /**
      * Send a message.
      *
      * @param string $to
      * @param array $message
      * @return void
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public function sendMessage(string $to, array $message): void
     {
@@ -69,6 +177,7 @@ class RocketChat
             'headers' => [
                 'X-Auth-Token' => $this->token,
                 'X-User-Id' => $this->userId,
+                'Rocket-Channel-Id' => $to,
                 'Content-Type' => 'application/json'
             ],
             'json' => array_merge($message, [
@@ -83,6 +192,7 @@ class RocketChat
      * @param string $url
      * @param array $options
      * @return void
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     private function post(string $url, array $options): void
     {

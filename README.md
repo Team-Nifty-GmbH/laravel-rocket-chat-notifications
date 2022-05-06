@@ -10,6 +10,10 @@ This package makes it easy to send notifications using [RocketChat](https://rock
     - [Setting up the RocketChat service](#setting-up-the-rocketchat-service)
 - [Usage](#usage)
     - [Available Message methods](#available-message-methods)
+    - [Adding Attachment](#adding-attachment)
+    - [Available Attachment methods](#available-attachment-methods)
+    - [Sending messages without notification](#sending-messages-without-a-notification)
+    - [Sending messages via connection](#sending-messages-via-connection)
 - [Credits](#credits)
 - [License](#license)
 
@@ -25,19 +29,53 @@ $ composer require team-nifty-gmbh/laravel-rocket-chat-notifications
 
 In order to send message to RocketChat channels, you need to create a bot user with an access token in your RocketChat Application
 
-Add your RocketChat API server's base url, access token and user Id to `config/services.php`:
+You can publish the config file with:
+```shell script
+$ php artisan vendor:publish --provider="TeamNiftyGmbh\RocketChatNotifications\RocketChatNotificationsServiceProvider"
+```
 
+The config file looks as follows:
 ```php
-// config/services.php
+// config/rocket-chat.php
 ...
-'rocketchat' => [
-     // Base URL for RocketChat API server (https://your.rocketchat.server.com)
-    'url' => env('ROCKETCHAT_URL'),
-    'token' => env('ROCKETCHAT_TOKEN'),
-    'user_id' => env('ROCKETCHAT_USER_ID'),
-],
+    /*
+    |--------------------------------------------------------------------------
+    | Default RocketChat Connection Name
+    |--------------------------------------------------------------------------
+    |
+    | Here you may specify which RocketChat connections below you wish
+    | to use as your default connection for all RocketChat notifications. Of course
+    | you may use many connections at once using the RocketChat static methods or 
+    | RocketChatMessage connection method.
+    |
+    */
+
+    'default' => env('ROCKETCHAT_CONNECTION', 'rocket-chat'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | RocketChat Connections
+    |--------------------------------------------------------------------------
+    |
+    | Here are each of the RocketChat connections setup for your application.
+    |
+    */
+
+    'connections' => [
+
+        'rocket-chat' => [
+            // Base URL for RocketChat API server (https://your.rocketchat.server.com)
+            'url' => env('ROCKETCHAT_URL'),
+            'token' => env('ROCKETCHAT_TOKEN'),
+            'user_id' => env('ROCKETCHAT_USER_ID')
+        ]
+
+    ]
 ...
 ```
+
+If you have published the config file, you can add your RocketChat API server's base url, access token and user Id to `config/rocket-chat.php`.
+You can also create additional connections if you wish to serve multiple RocketChats in your application.
 
 ## Usage
 
@@ -73,7 +111,11 @@ public function routeNotificationForRocketChat(): string
 }
 ```
 
-### Available methods
+### Available Message methods
+
+`connection()`: Sets the connection.
+
+`domain()`: Sets the domain of your rocket chat server.
 
 `from()`: Sets the sender's access token and user id.
 
@@ -99,6 +141,8 @@ There are several ways to add one or more attachments to a message
 public function toRocketChat($notifiable)
 {
     return RocketChatMessage::create('Test message')
+        ->connection('rocket-chat') // optional to alter the default connection, overrides 'domain', 'to' and 'from'
+        ->domain('https://your.rocketchat.server.com') //optional if set in config
         ->to('channel_name') // optional if set in config
         ->from('access_token', 'rocket_chat_user_id') // optional if set in config
         ->attachments([
@@ -112,7 +156,7 @@ public function toRocketChat($notifiable)
 }
 ```
 
-#### Available methods
+### Available Attachment methods
 
 `color()`: The color you want the order on the left side to be, any value background-css supports.
 
@@ -162,6 +206,24 @@ public function toRocketChat($notifiable)
     ],
 
 ];   
+```
+
+### Sending messages without a notification
+```php
+use TeamNiftyGmbh\RocketChatNotifications\Messages\RocketChatMessage;
+use TeamNiftyGmbh\RocketChatNotifications\RocketChat
+
+RocketChat::send('domain', 'token', 'userId', 'channel', RocketChatMessage::create('message'));
+```
+
+### Sending messages via connection 
+connection must be defined in `config/rocket-chat.php`
+
+```php
+use TeamNiftyGmbh\RocketChatNotifications\Messages\RocketChatMessage;
+use TeamNiftyGmbh\RocketChatNotifications\RocketChat
+
+RocketChat::sendVia('connection', 'channel', RocketChatMessage::create('message'));
 ```
 
 ## Credits

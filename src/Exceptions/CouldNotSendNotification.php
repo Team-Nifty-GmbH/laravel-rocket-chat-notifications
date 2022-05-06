@@ -8,8 +8,30 @@ use Exception;
 use GuzzleHttp\Exception\ClientException;
 use RuntimeException;
 
-final class CouldNotSendNotification extends RuntimeException
+class CouldNotSendNotification extends RuntimeException
 {
+    /**
+     * Thrown when connection is missing.
+     *
+     * @return static
+     */
+    public static function missingConnection(string $connection = null): self
+    {
+        return new CouldNotSendNotification(
+            "RocketChat notification was not sent. Connection `{$connection}` is missing."
+        );
+    }
+
+    /**
+     * Thrown when domain is missing.
+     *
+     * @return static
+     */
+    public static function missingDomain(): self
+    {
+        return new CouldNotSendNotification('RocketChat notification was not sent. Domain is missing.');
+    }
+
     /**
      * Thrown when channel identifier is missing.
      *
@@ -17,7 +39,9 @@ final class CouldNotSendNotification extends RuntimeException
      */
     public static function missingTo(): self
     {
-        return new CouldNotSendNotification('RocketChat notification was not sent. Channel identifier is missing.');
+        return new CouldNotSendNotification(
+            'RocketChat notification was not sent. Channel identifier is missing.'
+        );
     }
 
     /**
@@ -27,7 +51,9 @@ final class CouldNotSendNotification extends RuntimeException
      */
     public static function missingFrom(): self
     {
-        return new CouldNotSendNotification('RocketChat notification was not sent. Access token is missing.');
+        return new CouldNotSendNotification(
+            'RocketChat notification was not sent. Access token or User identifier is missing.'
+        );
     }
 
     /**
@@ -40,8 +66,15 @@ final class CouldNotSendNotification extends RuntimeException
     {
         $message = $exception->getResponse()->getBody();
         $code = $exception->getResponse()->getStatusCode();
+        $headers = $exception->getRequest()->getHeaders();
+        array_walk($headers, function (&$item) {
+            $item = $item[0] ?? $item;
+        });
 
-        return new CouldNotSendNotification("RocketChat responded with an error `{$code} - {$message}`");
+        return new CouldNotSendNotification(
+            "RocketChat responded with an error `{$code} - {$message}` " .
+            ". Headers: " . urldecode(http_build_query($headers, '', ', '))
+        );
     }
 
     /**
@@ -52,6 +85,8 @@ final class CouldNotSendNotification extends RuntimeException
      */
     public static function couldNotCommunicateWithRocketChat(Exception $exception): self
     {
-        return new CouldNotSendNotification("The communication with RocketChat failed. Reason: {$exception->getMessage()}");
+        return new CouldNotSendNotification(
+            "The communication with RocketChat failed. Reason: {$exception->getMessage()}"
+        );
     }
 }

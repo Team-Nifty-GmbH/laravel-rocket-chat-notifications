@@ -6,6 +6,12 @@ namespace TeamNiftyGmbh\RocketChatNotifications\Messages;
 
 class RocketChatMessage
 {
+    /** @var string|null RocketChat connection. */
+    protected ?string $connection = null;
+
+    /** @var string|null RocketChat domain. */
+    protected ?string $domain = null;
+
     /** @var string|null RocketChat channel id. */
     protected ?string $channel = null;
 
@@ -48,6 +54,16 @@ class RocketChatMessage
         $this->content($content);
     }
 
+    public function getConnection(): ?string
+    {
+        return $this->connection;
+    }
+
+    public function getDomain(): ?string
+    {
+        return $this->domain;
+    }
+
     public function getChannel(): ?string
     {
         return $this->channel;
@@ -61,6 +77,35 @@ class RocketChatMessage
     public function getUserId(): ?string
     {
         return $this->userId;
+    }
+
+    /**
+     * Set the RocketChat connection the message should be sent with.
+     *
+     * @param  string $connection
+     * @return $this
+     */
+    public function connection(string $connection): self
+    {
+        $this->connection = $connection;
+        $this->domain = config('rocket-chat.connections.' . $connection . '.url', $this->domain);
+        $this->from = config('rocket-chat.connections.' . $connection . '.token', $this->from);
+        $this->userId = config('rocket-chat.connections.' . $connection . '.user_id', $this->userId);
+
+        return $this;
+    }
+
+    /**
+     * Set the RocketChat domain the message should be sent to.
+     *
+     * @param  string $domain
+     * @return $this
+     */
+    public function domain(string $domain): self
+    {
+        $this->domain = $domain;
+
+        return $this;
     }
 
     /**
