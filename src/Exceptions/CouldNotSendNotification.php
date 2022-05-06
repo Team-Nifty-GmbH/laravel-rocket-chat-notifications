@@ -67,12 +67,13 @@ class CouldNotSendNotification extends RuntimeException
         $message = $exception->getResponse()->getBody();
         $code = $exception->getResponse()->getStatusCode();
         $headers = $exception->getRequest()->getHeaders();
-        $body = json_decode($exception->getRequest()->getBody()->getContents(), true);
+        array_walk($headers, function (&$item) {
+            $item = $item[0] ?? $item;
+        });
 
         return new CouldNotSendNotification(
             "RocketChat responded with an error `{$code} - {$message}` " .
-            ". Headers: " . http_build_query($headers, '', ', ') .
-            " Channel: " . ($body['channel'] ?? '')
+            ". Headers: " . urldecode(http_build_query($headers, '', ', '))
         );
     }
 

@@ -41,8 +41,11 @@ class RocketChatNotificationChannel
         /** @var RocketChatMessage $message */
         $message = $notification->toRocketChat($notifiable);
 
-        $domain = $message->getDomain() ?: $this->rocketChat->getDomain();
-        if (!$domain) {
+        if ($message->getDomain()) {
+            $this->rocketChat->setDomain($message->getDomain());
+        }
+
+        if (!$this->rocketChat->getDomain()) {
             throw CouldNotSendNotification::missingDomain();
         }
 
@@ -51,8 +54,15 @@ class RocketChatNotificationChannel
             throw CouldNotSendNotification::missingTo();
         }
 
-        $from = $message->getFrom() ?: $this->rocketChat->getToken();
-        if (!$from) {
+        if ($message->getFrom()) {
+            $this->rocketChat->setToken($message->getFrom());
+        }
+
+        if ($message->getUserId()) {
+            $this->rocketChat->setUserId($message->getUserId());
+        }
+
+        if (!$this->rocketChat->getToken() || !$this->rocketChat->getUserId()) {
             throw CouldNotSendNotification::missingFrom();
         }
 

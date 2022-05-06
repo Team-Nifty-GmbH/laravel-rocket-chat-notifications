@@ -213,7 +213,7 @@ public function toRocketChat($notifiable)
 use TeamNiftyGmbh\RocketChatNotifications\Messages\RocketChatMessage;
 use TeamNiftyGmbh\RocketChatNotifications\RocketChat
 
-RocketChat::send('domain', 'token', 'userId', 'channel', new RocketChatMessage('message'));
+RocketChat::send('domain', 'token', 'userId', 'channel', RocketChatMessage::create('message'));
 ```
 
 ### Sending messages via connection 
@@ -223,7 +223,7 @@ connection must be defined in `config/rocket-chat.php`
 use TeamNiftyGmbh\RocketChatNotifications\Messages\RocketChatMessage;
 use TeamNiftyGmbh\RocketChatNotifications\RocketChat
 
-RocketChat::sendVia('connection', 'channel', new RocketChatMessage('message'));
+RocketChat::sendVia('connection', 'channel', RocketChatMessage::create('message'));
 ```
 
 ## Credits

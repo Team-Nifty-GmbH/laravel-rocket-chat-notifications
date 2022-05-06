@@ -58,6 +58,7 @@ class RocketChat
             'headers' => [
                 'X-Auth-Token' => $token,
                 'X-User-Id' => $userId,
+                'Rocket-Channel-Id' => $to,
                 'Content-Type' => 'application/json'
             ],
             'json' => array_merge($message->toArray(), [
@@ -86,11 +87,11 @@ class RocketChat
             throw CouldNotSendNotification::missingConnection($connection);
         }
 
-        if ($domain = $rocketChatConnection['url']) {
+        if (!($domain = $rocketChatConnection['url'])) {
             throw CouldNotSendNotification::missingDomain();
         }
 
-        if (($token = $rocketChatConnection['token']) || ($userId = $rocketChatConnection['user_id'])) {
+        if (!($token = $rocketChatConnection['token']) || !($userId = $rocketChatConnection['user_id'])) {
             throw CouldNotSendNotification::missingFrom();
         }
 
@@ -108,7 +109,7 @@ class RocketChat
     }
 
     /**
-     * Returns RocketChat token.
+     * Returns RocketChat access token.
      *
      * @return string
      */
@@ -128,6 +129,39 @@ class RocketChat
     }
 
     /**
+     * Sets RocketChat domain
+     *
+     * @param string $domain
+     * @return void
+     */
+    public function setDomain(string $domain): void
+    {
+        $this->url = $domain;
+    }
+
+    /**
+     * Sets RocketChat access token
+     *
+     * @param string $token
+     * @return void
+     */
+    public function setToken(string $token): void
+    {
+        $this->token = $token;
+    }
+
+    /**
+     * Sets user id
+     *
+     * @param string $userId
+     * @return void
+     */
+    public function setUserId(string $userId): void
+    {
+        $this->userId = $userId;
+    }
+
+    /**
      * Send a message.
      *
      * @param string $to
@@ -143,6 +177,7 @@ class RocketChat
             'headers' => [
                 'X-Auth-Token' => $this->token,
                 'X-User-Id' => $this->userId,
+                'Rocket-Channel-Id' => $to,
                 'Content-Type' => 'application/json'
             ],
             'json' => array_merge($message, [
